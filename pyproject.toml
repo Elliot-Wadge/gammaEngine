@@ -1,0 +1,18 @@
+[project]
+name = "gammmaEngine"
+version = "0.1.0"
+description = "package to perfrom gamma analysis on irregular measurements as fast as possible"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "" }
+dependencies = [
+    # numpy,
+    # numba
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
