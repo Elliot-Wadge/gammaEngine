@@ -76,11 +76,8 @@ def _gamma_3D(coord_eval: npt.NDArray[np.float64],
             
             dist_term = r**2*dist_scale_sq
             bound = dose_thresh_sq * (min_g_sq - dist_term)
-            N = 4*np.pi*r**2/interp_res**2
-            a = 4*np.pi/(N)
+            a = interp_res_sq/r**2
             d = np.sqrt(a)
-            # a = np.pi*interp_res**2/r**2
-            # d = np.sqrt(a)
             M1 = int(np.round(np.pi/d)+1)
             M1_inv = 1/M1
             d1 = np.pi*M1_inv
