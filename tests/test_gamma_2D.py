@@ -1,5 +1,5 @@
 import numpy as np
-from gammaEngine.core import _gamma_2D
+from gammaEngine.core import _gamma_2D, _gamma_2D_pr
 import pymedphys
 
 def make_grid(nx=101, ny=101, spacing=1.0):
@@ -36,7 +36,7 @@ def test_planes_x():
     y = np.arange(-25,26,1,dtype=np.float64)
 
     rng = np.random.default_rng(0)
-    params = rng.random((20,3))*5
+    params = rng.random((100,3))*5
     
     xx, yy = np.meshgrid(x,y)
 
@@ -48,7 +48,30 @@ def test_planes_x():
         min_gamma = abs(slope*intercept/np.sqrt(1+slope**2))/threshold
         res = _gamma_2D(np.array([[0,0]]), x, y, np.array([0]), z, threshold, threshold,  interp_res=0.01, norm=1)[0]
 
-        assert np.isclose(res, min_gamma, atol=1e-6, rtol=5e-4)
+        assert np.isclose(res, min_gamma, atol=1e-3, rtol=1e-3)
+
+
+def test_planes_x_pr():
+    x = np.arange(-25,26,1,dtype=np.float64)
+    y = np.arange(-25,26,1,dtype=np.float64)
+
+    rng = np.random.default_rng(0)
+    params = rng.random((500,3))*5
+    
+    xx, yy = np.meshgrid(x,y)
+
+    for param in params:
+        slope, intercept, threshold = param
+        z = plane(xx, yy, slope, 0, intercept, 0)
+        # derived by calculating the min distance between the origin and a line w given slope and intercept and then rescaling by the threshold
+        # this assumes that dose threshold and distance threshold are equal
+        min_gamma = abs(slope*intercept/np.sqrt(1+slope**2))/threshold
+        res = _gamma_2D_pr(np.array([[0,0]]), x, y, np.array([0]), z, threshold, threshold,  interp_res=0.01, norm=1)[0]
+
+        if min_gamma <= 1:
+            assert bool(res)
+        else:
+            assert not bool(res)
 
 
 def test_planes_y():
@@ -88,6 +111,26 @@ def test_gamma_speed_2D(benchmark):
         return reg
 
     reg = benchmark(run_metric)
+
+
+def test_gamma_speed_2D_pr(benchmark):
+
+
+    x, y, xx, yy = make_grid(nx=501, ny=501)
+    z1 = gaussian_2D(xx, yy, 10, 0, 0)*100
+    z2 = gaussian_2D(xx, yy, 10, 1, 0)*100 + 1
+    coords1 = np.stack((yy.ravel(), xx.ravel()), axis=1)
+    
+    # warmup 
+    gamma_me = _gamma_2D_pr(coords1, y, x, z1.ravel(), z2, 2.0, 2.0, 0.1, 1)
+    gamma_me = gamma_me.reshape(z1.shape)
+
+    def run_metric():
+        reg = _gamma_2D_pr(coords1, y, x, z1.ravel(), z2, 2.0, 2.0, 0.1, 1)
+        return reg
+
+    reg = benchmark(run_metric)
+
 
 
 

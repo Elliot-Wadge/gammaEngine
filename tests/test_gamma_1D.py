@@ -1,5 +1,5 @@
 import numpy as np
-from gammaEngine.core import _gamma_1D
+from gammaEngine.core import _gamma_1D, _gamma_1D_pr
 import pymedphys
 from matplotlib import pyplot as plt
 
@@ -35,6 +35,36 @@ def test_lines_x():
                         1)[0]
 
         assert np.isclose(res, min_gamma, atol=1e-6, rtol=5e-4)
+
+
+def test_lines_pr():
+    x = np.arange(-25,26,1,dtype=np.float64)
+    
+
+    rng = np.random.default_rng(0)
+    params = rng.random((500,3))*5
+    
+    
+    for param in params:
+        slope, intercept, threshold = param
+        dose_ref = line(x, slope, intercept)
+        # derived by calculating the min distance between the origin and a line w given slope and intercept and then rescaling by the threshold
+        # this assumes that dose threshold and distance threshold are equal
+        min_gamma = abs(slope*intercept/np.sqrt(1+slope**2))/threshold
+        res = _gamma_1D_pr(np.array([0], dtype=float), 
+                            x, 
+                            np.array([0], dtype=float), 
+                            dose_ref, 
+                            threshold, 
+                            threshold, 
+                            0.0001, 
+                            1)[0]
+
+        if min_gamma <= 1:
+            assert bool(res)
+        else:
+            assert not bool(res)
+        
 
 
 def test_compare_to_pymedphys():
@@ -94,6 +124,39 @@ def test_gamma_speed_1D(benchmark):
         return reg
 
     reg = benchmark(run_metric)
+
+
+def test_gamma_speed_1D_pr(benchmark):
+
+
+    x_ref = np.arange(-10,10,0.1, dtype=np.float64)
+    x_eval = x_ref + 0.1
+    y_ref = gaussian(x_ref, 0.5, 2)*100
+    y_eval = gaussian(x_ref, 0, 1.98)*100
+    
+    # warmup 
+    gamma_me = _gamma_1D_pr(x_eval,
+                         x_ref,
+                         y_eval,
+                         y_ref,
+                         2,
+                         2,
+                         0.001,
+                         1)
+
+    def run_metric():
+        reg = _gamma_1D_pr(x_eval,
+                         x_ref,
+                         y_eval,
+                         y_ref,
+                         2,
+                         2,
+                         0.001,
+                         1)
+        return reg
+
+    reg = benchmark(run_metric)
+
 
 
 def test_pymedphys_speed_1D(benchmark):
