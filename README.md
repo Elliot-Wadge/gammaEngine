@@ -57,9 +57,9 @@ Performance improvements come primarily from:
 ## Example Usage
 
 ```python
-from gamma_engine import gamma_1d
+from gamma_engine import _gamma_1d
 
-gamma = gamma_1d(
+gamma = _gamma_1d(
     x_evaluated,
     x_reference,
     dose_eval,
