@@ -2,7 +2,7 @@
 from numba import njit, prange
 import numpy as np
 import numpy.typing as npt
-from .interpolation import f_bilinear_interp, f_linear_interp, f_trilinear_interp, fast_cos, fast_sin, uniform_spaced_points_on_sphere
+from .interpolation import f_bilinear_interp, f_linear_interp, f_trilinear_interp, fast_cos, fast_sin
 
 
 @njit
