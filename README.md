@@ -79,22 +79,14 @@ x_ref = np.arange(-10,10,0.1, dtype=np.float64)
 x_eval = x_ref + 0.1
 y_ref = gaussian(x_ref, 0.7, 2)*100
 y_eval = gaussian(x_ref, 0, 1.98)*100
-
-gamma_me = gamma(x_eval,
-                (x_ref,),
-                y_eval,
-                y_ref,
-                2,
-                2,
-                0.001,
-                1)
+# note the comma in (x_ref,) is necessary to ensure compatibility with the higher dimension formatting
+gamma_me = gamma(x_eval,(x_ref,),y_eval,y_ref,2,2,0.001,1)
 
 x, y, xx, yy = make_grid()
 z1 = gaussian_2D(xx, yy, 9.5, 0, 0)*100
 z2 = gaussian_2D(xx, yy, 10, 1, 0)*100 + 1
 coords1 = np.stack((yy.ravel(), xx.ravel()), axis=1)
-gamma_pmp = pymedphys.gamma((y,x), z1, (y,x), z2, 2, 2, 0, 100, local_gamma=False, interp_algo='scipy')
 gamma_me = gamma(coords1, (y,x), z1.ravel(), z2, 2.0, 2.0, 0.02, 1)
-gamma_me = gamma_me.reshape(z1.shape)
+
 
 
