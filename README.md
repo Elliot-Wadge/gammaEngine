@@ -74,7 +74,7 @@ def gaussian_2D(xx,yy,sigma,x0,y0):
 def gaussian(x, b, c):
     return np.exp(-(x-b)**2/(2*c**2))
 
-
+# 1D example
 x_ref = np.arange(-10,10,0.1, dtype=np.float64)
 x_eval = x_ref + 0.1
 y_ref = gaussian(x_ref, 0.7, 2)*100
@@ -82,6 +82,8 @@ y_eval = gaussian(x_ref, 0, 1.98)*100
 # note the comma in (x_ref,) is necessary to ensure compatibility with the higher dimension formatting
 gamma_me = gamma(x_eval,(x_ref,),y_eval,y_ref,2,2,0.001,1)
 
+
+# 2D example
 x, y, xx, yy = make_grid()
 z1 = gaussian_2D(xx, yy, 9.5, 0, 0)*100
 z2 = gaussian_2D(xx, yy, 10, 1, 0)*100 + 1
