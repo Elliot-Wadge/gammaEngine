@@ -98,6 +98,39 @@ def gamma(eval_cords: npt.NDArray[np.float64],
           norm: float,
           pass_rate_only:bool = False):
 
+    """
+    A function for quickly computing the gamma values of an irregular set of data points (such as those collected from QA measurements) to a reference distribution
+    defined by a regular grid such as exported from treatment planning systems. Supports 1D, 2D, and 3D analysis based on the inputs.
+
+
+    :param eval_cords: The spatial coordinates of the points to be evaluated 
+        with shape (N, D), where N is the number of evaluation points and D is 
+        the dimension. For example, a 3D input takes the form [[z1, y1, x1], ..., 
+        [zN, yN, xN]]. For 1D, a flat array [x1, ..., xN] is accepted.
+    :param ref_axis: A tuple of length D containing the 1D coordinate arrays 
+        that define the regularly spaced grid axes for the reference distribution.
+    :param dose_eval: The flattened evaluation dose array corresponding to the 
+        coordinates specified by eval_cords. Must have shape (N,).
+    :param dose_ref: The reference dose array grid matching the dimensions defined 
+        by ref_axis. Accessed via multi-dimensional indexing, e.g., 
+        dose_ref[z_index, y_index, x_index].
+    :param dose_threshold: The dose difference acceptance threshold, defined in 
+        the same arbitrary units as norm.
+    :param distance_threshold: The distance-to-agreement (DTA) threshold, 
+        defined in the same spatial units as ref_axis (typically mm).
+    :param interp_res: The fine resolution step size at which the reference 
+        dose distribution is interpolated and searched.
+    :param norm: The normalization constant defining relative dose difference 
+        scaling. To define the threshold as a percentage of maximum dose (Dmax), 
+        set norm = 100 / max(dose_ref). Note: Local gamma is currently unsupported.
+    :param pass_rate_only: If True, skips calculating exact numerical gamma 
+        scores for every voxel and only returns the overall pass/fail metric. 
+        Because passing evaluations can be bounded early, enabling this can 
+        yield order-of-magnitude computational speedups. (default: False)
+
+
+    """
+
     prescreen(eval_cords, ref_axis, dose_eval, dose_ref, dose_threshold, distance_threshold, interp_res, norm, pass_rate_only)
     gamma_f = match_gamma_function(ref_axis, pass_rate_only)
     res = gamma_f(eval_cords,
