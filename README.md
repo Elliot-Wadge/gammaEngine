@@ -8,7 +8,7 @@ gammaEngine is a fast NumPy/Numba-based implementation of gamma index evaluation
 
 ## Key Features
 
-- High-performance gamma computation using Numba-accelerated kernels
+- High-performance gamma computation using Numba-acceleration
 - Parallel execution support for large-scale dose evaluations
 - Efficient interpolation and indexing strategies for structured grids
 - Support for both regular and irregular coordinate systems
@@ -57,15 +57,44 @@ Performance improvements come primarily from:
 ## Example Usage
 
 ```python
-from gamma_engine import _gamma_1d
+from gamma_engine import gamma
 
-gamma = _gamma_1d(
-    x_evaluated,
-    x_reference,
-    dose_eval,
-    dose_reference,
-    2.0, # dose threshold
-    0.03, # distance threshold
-    0.001, # interpolation resolution
-    100/max(reference) # definition of 100 percent
-)
+
+def make_grid(nx=101, ny=101, spacing=1.0):
+    x = np.linspace(0, (nx-1)*spacing, nx)
+    y = np.linspace(0, (ny-1)*spacing, ny)
+    xv, yv = np.meshgrid(x, y)
+    return x, y, xv, yv
+
+
+def gaussian_2D(xx,yy,sigma,x0,y0):
+    return np.exp(-((xx-x0)**2 + (yy-y0)**2)/2/sigma**2)
+
+
+def gaussian(x, b, c):
+    return np.exp(-(x-b)**2/(2*c**2))
+
+
+x_ref = np.arange(-10,10,0.1, dtype=np.float64)
+x_eval = x_ref + 0.1
+y_ref = gaussian(x_ref, 0.7, 2)*100
+y_eval = gaussian(x_ref, 0, 1.98)*100
+
+gamma_me = gamma(x_eval,
+                (x_ref,),
+                y_eval,
+                y_ref,
+                2,
+                2,
+                0.001,
+                1)
+
+x, y, xx, yy = make_grid()
+z1 = gaussian_2D(xx, yy, 9.5, 0, 0)*100
+z2 = gaussian_2D(xx, yy, 10, 1, 0)*100 + 1
+coords1 = np.stack((yy.ravel(), xx.ravel()), axis=1)
+gamma_pmp = pymedphys.gamma((y,x), z1, (y,x), z2, 2, 2, 0, 100, local_gamma=False, interp_algo='scipy')
+gamma_me = gamma(coords1, (y,x), z1.ravel(), z2, 2.0, 2.0, 0.02, 1)
+gamma_me = gamma_me.reshape(z1.shape)
+
+
