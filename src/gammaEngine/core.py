@@ -47,7 +47,7 @@ def _gamma_3D(coord_eval: npt.NDArray[np.float64],
     dose_scale = 1*norm/dose_threshold
     dist_scale_sq = dist_scale**2
     dose_scale_sq = dose_scale**2
-    dose_thresh_sq = dose_threshold**2
+    inv_dose_scale_sq = 1/dose_scale_sq
     distance_threshold_sq = distance_threshold**2
 
     x_min, x_max = ref_x_axes[0], ref_x_axes[-1]
@@ -75,7 +75,7 @@ def _gamma_3D(coord_eval: npt.NDArray[np.float64],
             
             
             dist_term = r**2*dist_scale_sq
-            bound = dose_thresh_sq * (min_g_sq - dist_term)
+            bound = inv_dose_scale_sq * (min_g_sq - dist_term)
             a = interp_res_sq/r**2
             d = np.sqrt(a)
             M1 = int(np.round(np.pi/d)+1)
@@ -180,10 +180,10 @@ def _gamma_3D_pr(coord_eval: npt.NDArray[np.float64],
     dz = 1/(ref_y_axes[1] - ref_y_axes[0])
     dist_scale = 1/distance_threshold
     dose_scale = 1*norm/dose_threshold
-    dist_scale_sq = dist_scale**2
     dose_scale_sq = dose_scale**2
-    dose_thresh_sq = dose_threshold**2
-    distance_threshold_sq = distance_threshold**2
+    dist_scale_sq = dist_scale**2
+    inv_dose_scale_sq = 1/dose_scale_sq
+    
 
     x_min, x_max = ref_x_axes[0], ref_x_axes[-1]
     y_min, y_max = ref_y_axes[0], ref_y_axes[-1]
@@ -200,7 +200,7 @@ def _gamma_3D_pr(coord_eval: npt.NDArray[np.float64],
         while r < distance_threshold and not brk:
                         
             dist_term = r**2*dist_scale_sq
-            bound = dose_thresh_sq * (1 - dist_term)
+            bound = inv_dose_scale_sq * (1 - dist_term)
             a = interp_res_sq/r**2
             d = np.sqrt(a)
             M1 = int(np.round(np.pi/d)+1)
@@ -301,7 +301,7 @@ def _gamma_2D(coord_eval: npt.NDArray[np.float64],
     dose_scale = 1*norm/dose_threshold
     dist_scale_sq = dist_scale**2
     dose_scale_sq = dose_scale**2
-    dose_thresh_sq = dose_threshold**2
+    inv_dose_scale_sq = 1/dose_scale_sq
     distance_threshold_sq = distance_threshold**2
 
     x_min, x_max = ref_x_axes[0], ref_x_axes[-1]
@@ -334,7 +334,7 @@ def _gamma_2D(coord_eval: npt.NDArray[np.float64],
             m = int(two_pi * k)
             dist_term = d**2*dist_scale_sq
             increment = two_pi/m
-            bound = dose_thresh_sq * (min_g_sq - dist_term)
+            bound = inv_dose_scale_sq * (min_g_sq - dist_term)
             
             for j in range(m):
                 angle = j*increment
@@ -393,9 +393,9 @@ def _gamma_2D_pr(coord_eval: npt.NDArray[np.float64],
     dy = 1/(ref_y_axes[1] - ref_y_axes[0])
     dist_scale = 1/distance_threshold
     dose_scale = 1*norm/dose_threshold
-    dist_scale_sq = dist_scale**2
     dose_scale_sq = dose_scale**2
-    dose_thresh_sq = dose_threshold**2
+    dist_scale_sq = dist_scale**2
+    inv_dose_scale_sq = 1/dose_scale_sq
     x_min, x_max = ref_x_axes[0], ref_x_axes[-1]
     y_min, y_max = ref_y_axes[0], ref_y_axes[-1]
     two_pi = 6.283185307179586
@@ -417,7 +417,7 @@ def _gamma_2D_pr(coord_eval: npt.NDArray[np.float64],
             m = int(two_pi * k)
             dist_term = d**2*dist_scale_sq
             increment = two_pi/m
-            bound = dose_thresh_sq * (1 - dist_term)
+            bound = inv_dose_scale_sq * (1 - dist_term)
             
             for j in range(m):
                 angle = j*increment
@@ -457,7 +457,7 @@ def _gamma_1D(x_eval:npt.NDArray[np.float64],
     dose_scale = 1*norm/dose_threshold
     dist_scale_sq = dist_scale**2
     dose_scale_sq = dose_scale**2
-    dose_thresh_sq = dose_threshold**2
+    inv_dose_scale_sq = 1/dose_scale_sq
     distance_threshold_sq = distance_threshold**2
     x_min, x_max = x_ref[0], x_ref[-1]
     signs = [-1,1]
@@ -479,7 +479,7 @@ def _gamma_1D(x_eval:npt.NDArray[np.float64],
         while d**2 < min_g_sq*distance_threshold_sq and d < max_distance:
             
             dist_term = d**2*dist_scale_sq
-            bound = dose_thresh_sq * (min_g_sq - dist_term)
+            bound = inv_dose_scale_sq * (min_g_sq - dist_term)
             # take a step in both directions away from the starting point
             for sign in signs:
                 check_x1 = x + sign*d
@@ -518,8 +518,7 @@ def _gamma_1D_pr(x_eval:npt.NDArray[np.float64],
     dose_scale = 1*norm/dose_threshold
     dist_scale_sq = dist_scale**2
     dose_scale_sq = dose_scale**2
-    dose_thresh_sq = dose_threshold**2
-    distance_threshold_sq = distance_threshold**2
+    inv_dose_scale_sq = 1/dose_scale_sq
     x_min, x_max = x_ref[0], x_ref[-1]
     signs = [-1,1]
     res = np.zeros(x_eval.shape, dtype=np.uint8)
@@ -532,7 +531,7 @@ def _gamma_1D_pr(x_eval:npt.NDArray[np.float64],
         while d < distance_threshold and not res[i]:
             
             dist_term = d**2*dist_scale_sq
-            bound = dose_thresh_sq * (1 - dist_term)
+            bound = inv_dose_scale_sq * (1 - dist_term)
             # take a step in both directions away from the starting point
             for sign in signs:
                 check_x1 = x + sign*d

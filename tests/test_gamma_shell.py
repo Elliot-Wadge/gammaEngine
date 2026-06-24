@@ -48,11 +48,11 @@ def test_match():
 def test_gamma_against_pymedphys():
 
     x, y, xx, yy = make_grid()
-    z1 = gaussian_2D(xx, yy, 9.5, 0, 0)*100
-    z2 = gaussian_2D(xx, yy, 10, 1, 0)*100 + 1
+    z1 = gaussian_2D(xx, yy, 9.5, 0, 0)*200
+    z2 = gaussian_2D(xx, yy, 10, 1, 0)*200 + 2
     coords1 = np.stack((yy.ravel(), xx.ravel()), axis=1)
-    gamma_pmp = pymedphys.gamma((y,x), z1, (y,x), z2, 2, 2, 0, 100, local_gamma=False, interp_algo='scipy')
-    gamma_me = gamma(coords1, (y,x), z1.ravel(), z2, 2.0, 2.0, 0.02, 1)
+    gamma_pmp = pymedphys.gamma((y,x), z1, (y,x), z2, 2, 2, 0, 100, local_gamma=False, interp_algo='scipy', global_normalisation=np.max(z2))
+    gamma_me = gamma(coords1, (y,x), z1.ravel(), z2, 2.0, 2.0, 0.02, 100/np.max(z2))
     gamma_me = gamma_me.reshape(z1.shape)
 
     assert np.allclose(gamma_pmp, gamma_me, atol=3.1e-3)
@@ -60,8 +60,8 @@ def test_gamma_against_pymedphys():
 
     x_ref = np.arange(-10,10,0.1, dtype=np.float64)
     x_eval = x_ref + 0.1
-    y_ref = gaussian(x_ref, 0.7, 2)*100
-    y_eval = gaussian(x_ref, 0, 1.98)*100
+    y_ref = gaussian(x_ref, 0.7, 2)*250
+    y_eval = gaussian(x_ref, 0, 1.98)*250
 
     gamma_me = gamma(x_eval,
                      (x_ref,),
@@ -70,17 +70,17 @@ def test_gamma_against_pymedphys():
                      2,
                      2,
                      0.001,
-                     1)
+                     100/np.max(y_ref))
 
 
-    gamma_pmp = pymedphys.gamma(x_eval, y_eval, x_ref, y_ref, 2, 2, interp_fraction=2000, local_gamma=False, lower_percent_dose_cutoff=0)
+    gamma_pmp = pymedphys.gamma(x_eval, y_eval, x_ref, y_ref, 2, 2, interp_fraction=2000, local_gamma=False, lower_percent_dose_cutoff=0, global_normalisation=np.max(y_ref))
     assert abs(np.mean(gamma_pmp - gamma_me)) < 1e-4
     assert np.allclose(gamma_pmp, gamma_me, atol=3.1e-3)
 
 
     z, y, x, zz, yy, xx = make_grid_3D(nx=5, ny=5, nz=5)
-    dose_ref = gaussian_3D(xx, yy, zz, 4, 0, 0, 0) * 100
-    dose_eval = gaussian_3D(xx, yy, zz, 5, 0.5, 0, 0) * 100 + 1
+    dose_ref = gaussian_3D(xx, yy, zz, 4, 0, 0, 0) * 50
+    dose_eval = gaussian_3D(xx, yy, zz, 5, 0.5, 0, 0) * 50 + 1
     coords_eval = np.stack(
         (zz.ravel(), yy.ravel(), xx.ravel()),
         axis=1
@@ -93,7 +93,7 @@ def test_gamma_against_pymedphys():
         2.0,
         2.0,
         0.05,
-        1
+        100/np.max(dose_ref)
     )
     gamma_pmp = pymedphys.gamma(
         (z, y, x),
@@ -105,7 +105,8 @@ def test_gamma_against_pymedphys():
         0,
         40,
         local_gamma=False,
-        interp_algo='scipy'
+        interp_algo='scipy',
+        global_normalisation=np.max(dose_ref)
     )
     gamma_me = gamma_me.reshape(dose_ref.shape)
     assert abs(np.mean(gamma_pmp - gamma_me)) < 1e-2
